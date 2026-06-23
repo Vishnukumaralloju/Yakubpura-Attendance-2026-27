@@ -1,4 +1,4 @@
-const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; 
+const url = "https://script.google.com/macros/s/AKfycbzzLYNKEVWQlELmeH1h8m9-IoiHeqStxOQFRXDK57CDdAQ38d4rEtmM9KeGmQYVVKfTjw/exec"; 
 
 window.onload = function() {
     // ఈ రోజు తేదీని ఆటోమేటిక్‌గా క్యాలెండర్‌లో సెట్ చేయడానికి
@@ -23,7 +23,7 @@ function loadStudents() {
     container.innerHTML = "";
     loading.style.display = "block";
     
-    // మీ గూగుల్ స్క్రిప్ట్ నుండి డేటాను డైరెక్ట్‌గా రీడ్ చేసే పక్కా లాజిక్
+    // గూగుల్ షీట్ నుండి విద్యార్థుల లిస్ట్‌ను లోడ్ చేసే డైరెక్ట్ లాజిక్
     fetch(`${url}?className=${encodeURIComponent(className)}`, { method: "GET", redirect: "follow" })
     .then(response => response.json())
     .then(students => {

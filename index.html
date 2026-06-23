@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTWRJC Attendance Web App</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background-color: #121212; color: #ffffff; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 400px; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); border: 1px solid #333; }
+        h2 { text-align: center; color: #4caf50; margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #bbbbbb; }
+        input, select, button { width: 100%; padding: 10px; box-sizing: border-box; border-radius: 6px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 16px; }
+        input:focus, select:focus { border-color: #4caf50; outline: none; }
+        button { background-color: #4caf50; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        button:hover { background-color: #45a049; }
+        #msg { text-align: center; margin-top: 15px; font-weight: bold; color: #2196f3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>అటెండెన్స్ వెబ్ యాప్</h2>
+    
+    <div class="form-group">
+        <label>తేదీ (Date):</label>
+        <input type="text" id="attendanceDate" value="23-Jun-2026">
+    </div>
+
+    <div class="form-group">
+        <label>రోల్ నంబర్ (Roll No):</label>
+        <input type="number" id="rollNo" placeholder="ఉదాహరణకు: 5" min="1" max="30">
+    </div>
+
+    <div class="form-group">
+        <label>హాజరు (Status):</label>
+        <select id="status">
+            <option value="true">Present (టిక్ చేయి)</option>
+            <option value="false">Absent (టిక్ తీసేయి)</option>
+        </select>
+    </div>
+
+    <button onclick="submitAttendance()">గూగుల్ షీట్‌లో అప్‌డేట్ చేయి</button>
+    <p id="msg"></p>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

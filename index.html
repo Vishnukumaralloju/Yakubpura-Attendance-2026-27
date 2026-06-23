@@ -14,11 +14,16 @@
         label { margin-bottom: 5px; font-weight: bold; color: #aaa; font-size: 14px; }
         select, input { padding: 10px; border-radius: 6px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 15px; box-sizing: border-box; }
         
-        .student-list { margin-top: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #333; padding: 10px; border-radius: 6px; background: #151515; }
+        /* Select All Section */
+        .select-all-container { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; background: #252525; border-radius: 6px; margin-top: 15px; border: 1px solid #3a3a3a; }
+        .select-all-label { font-weight: bold; color: #4caf50; font-size: 15px; }
+
+        .student-list { margin-top: 10px; max-height: 400px; overflow-y: auto; border: 1px solid #333; padding: 10px; border-radius: 6px; background: #151515; }
         .student-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #2a2a2a; }
         .student-item:last-child { border-bottom: none; }
-        .student-info { display: flex; gap: 15px; font-size: 15px; }
-        .roll-no { color: #4caf50; font-weight: bold; width: 25px; }
+        .student-info { display: flex; gap: 15px; font-size: 15px; align-items: center; width: 80%; }
+        .roll-no { color: #4caf50; font-weight: bold; width: 30px; }
+        .name { color: #fff; }
         
         input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #4caf50; }
         
@@ -44,11 +49,16 @@
         </div>
         <div class="form-control">
             <label>తేదీ (Date):</label>
-            <input type="date" id="attendanceDate">
+            <input type="date" id="attendanceDate" onchange="loadStudents()">
         </div>
     </div>
 
-    <div id="loading" style="display:none;">విద్యార్థుల లిస్ట్ లోడ్ అవుతోంది...</div>
+    <div class="select-all-container">
+        <span class="select-all-label">అందరినీ సెలెక్ట్ చేయి (Select All)</span>
+        <input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this)">
+    </div>
+
+    <div id="loading" style="display:none;">గూగుల్ షీట్ నుండి విద్యార్థుల లిస్ట్ లోడ్ అవుతోంది...</div>
     
     <div class="student-list" id="studentContainer"></div>
 

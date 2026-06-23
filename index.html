@@ -12,7 +12,7 @@
         .form-group { margin-bottom: 15px; display: flex; gap: 10px; }
         .form-control { flex: 1; display: flex; flex-direction: column; }
         label { margin-bottom: 5px; font-weight: bold; color: #aaa; font-size: 14px; }
-        select, input { padding: 10px; border-radius: 6px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 15px; }
+        select, input { padding: 10px; border-radius: 6px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 15px; box-sizing: border-box; }
         
         .student-list { margin-top: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #333; padding: 10px; border-radius: 6px; background: #151515; }
         .student-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #2a2a2a; }
@@ -20,7 +20,6 @@
         .student-info { display: flex; gap: 15px; font-size: 15px; }
         .roll-no { color: #4caf50; font-weight: bold; width: 25px; }
         
-        /* Checkbox Big Size */
         input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #4caf50; }
         
         button { width: 100%; padding: 12px; border-radius: 6px; border: none; background-color: #4caf50; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
@@ -45,14 +44,13 @@
         </div>
         <div class="form-control">
             <label>తేదీ (Date):</label>
-            <input type="text" id="attendanceDate" value="23-Jun-2026">
+            <input type="date" id="attendanceDate">
         </div>
     </div>
 
     <div id="loading" style="display:none;">విద్యార్థుల లిస్ట్ లోడ్ అవుతోంది...</div>
     
-    <div class="student-list" id="studentContainer">
-        </div>
+    <div class="student-list" id="studentContainer"></div>
 
     <button onclick="submitAllAttendance()">సబ్మిట్ చేయి (Submit Attendance)</button>
     <p id="msg"></p>

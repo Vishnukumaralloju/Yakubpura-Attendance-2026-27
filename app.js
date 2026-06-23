@@ -1,4 +1,4 @@
-const url = "YOUR_NEW_APPS_SCRIPT_URL"; // మీ గూగుల్ వెబ్ యాప్ కొత్త URL ఇక్కడ పెట్టండి
+const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; // మీ గూగుల్ వెబ్ యాప్ కొత్త URL ఇక్కడ పెట్టండి
 
 // యాప్ ఓపెన్ అవ్వగానే ఆటోమేటిక్‌గా విద్యార్థుల లిస్ట్ లోడ్ అవ్వడానికి
 window.onload = function() {

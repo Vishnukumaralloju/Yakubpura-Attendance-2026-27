@@ -5,7 +5,7 @@ function submitAttendance() {
     const rollNoVal = document.getElementById("rollNo").value;
     const statusVal = document.getElementById("status").value === "true"; // converts string to boolean
     const msgElement = document.getElementById("msg");
-
+ 
     if (!rollNoVal) {
         alert("దయచేసి రోల్ నంబర్ ఎంటర్ చేయండి!");
         return;

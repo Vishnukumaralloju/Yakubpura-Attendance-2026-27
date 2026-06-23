@@ -1,48 +1,92 @@
-function doGet(e) {
-  var sheetName = e.parameter.className || "BiPC II";
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(sheetName);
-  
-  // 5వ రో నుండి 34వ రో వరకు ఉన్న రోల్ నంబర్ మరియు విద్యార్థుల పేర్లను రీడ్ చేయడం
-  var data = sheet.getRange(5, 1, 30, 2).getValues(); 
-  
-  var students = [];
-  for (var i = 0; i < data.length; i++) {
-    if (data[i][1]) { // పేరు ఖాళీగా లేకపోతే
-      students.push({
-        rollNo: data[i][0],
-        name: data[i][1]
-      });
-    }
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify(students))
-                       .setMimeType(ContentService.MimeType.JSON);
+const url = "YOUR_NEW_APPS_SCRIPT_URL"; // మీ గూగుల్ వెబ్ యాప్ కొత్త URL ఇక్కడ పెట్టండి
+
+// యాప్ ఓపెన్ అవ్వగానే ఆటోమేటిక్‌గా విద్యార్థుల లిస్ట్ లోడ్ అవ్వడానికి
+window.onload = function() {
+    loadStudents();
+};
+
+function loadStudents() {
+    const className = document.getElementById("className").value;
+    const container = document.getElementById("studentContainer");
+    const loading = document.getElementById("loading");
+    
+    container.innerHTML = "";
+    loading.style.display = "block";
+    
+    // Google Sheets నుండి విద్యార్థుల డేటాను Get చేయడం
+    fetch(`${url}?className=${encodeURIComponent(className)}`)
+    .then(response => response.json())
+    .then(students => {
+        loading.style.display = "none";
+        if(students.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:#aaa;'>విద్యార్థులు ఎవరూ లేరు.</p>";
+            return;
+        }
+        
+        students.forEach(student => {
+            const item = document.createElement("div");
+            item.className = "student-item";
+            item.innerHTML = `
+                <div class="student-info">
+                    <span class="roll-no">${student.rollNo}</span>
+                    <span class="name">${student.name}</span>
+                </div>
+                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked>
+            `;
+            container.appendChild(item);
+        });
+    })
+    .catch(error => {
+        loading.style.display = "none";
+        console.error("Error loading students:", error);
+        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ చేయడంలో సమస్య వచ్చింది.</p>";
+    });
 }
 
-function doPost(e) {
-  var sheetObj = SpreadsheetApp.getActiveSpreadsheet();
-  var data = JSON.parse(e.postData.contents);
-  
-  var sheetName = data.className; 
-  var sheet = sheetObj.getSheetByName(sheetName);
-  var dateStr = data.date; 
-  var attendanceList = data.attendance; // [{rollNo: 1, isPresent: true}, ...]
-  
-  // 2వ రో లో ఉన్న తేదీలను వెతకడం
-  var headers = sheet.getRange(2, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var dateColumnIndex = headers.indexOf(dateStr) + 1;
-  
-  if (dateColumnIndex > 0) {
-    attendanceList.forEach(function(student) {
-      var row = parseInt(student.rollNo) + 4; // రోల్ నంబర్ 1 కి 5వ రో వస్తుంది
-      sheet.getRange(row, dateColumnIndex).setValue(student.isPresent);
+function submitAllAttendance() {
+    const className = document.getElementById("className").value;
+    const dateVal = document.getElementById("attendanceDate").value.trim();
+    const msgElement = document.getElementById("msg");
+    
+    const checkboxes = document.querySelectorAll(".attendance-check");
+    if(checkboxes.length === 0) {
+        alert("సబ్మిట్ చేయడానికి విద్యార్థుల లిస్ట్ లేదు!");
+        return;
+    }
+    
+    msgElement.style.color = "#2196f3";
+    msgElement.innerText = "అటెండెన్స్ షీట్‌లోకి అప్‌లోడ్ అవుతోంది... దయచేసి ఆగండి.";
+    
+    const attendanceData = [];
+    checkboxes.forEach(cb => {
+        attendanceData.push({
+            rollNo: cb.getAttribute("data-roll"),
+            isPresent: cb.checked // టిక్ ఉంటే true, లేకపోతే false
+        });
     });
     
-    return ContentService.createTextOutput(JSON.stringify({"status": "success"}))
-                         .setMimeType(ContentService.MimeType.JSON);
-  } else {
-    return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": "తేదీ కనుగొనబడలేదు!"}))
-                         .setMimeType(ContentService.MimeType.JSON);
-  }
+    const payload = {
+        className: className,
+        date: dateVal,
+        attendance: attendanceData
+    };
+    
+    // డేటాను ఒకేసారి POST రిక్వెస్ట్ ద్వారా షీట్‌కు పంపడం
+    fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        msgElement.style.color = "#4caf50";
+        msgElement.innerText = `${className} తరగతి హాజరు విజయవంతంగా నమోదైనది!`;
+    })
+    .catch(error => {
+        console.error("Error submitting attendance:", error);
+        msgElement.style.color = "#f44336";
+        msgElement.innerText = "సమర్పించడంలో లోపం జరిగింది. మళ్ళీ ప్రయత్నించండి.";
+    });
 }

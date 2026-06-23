@@ -1,4 +1,4 @@
-const url = "https://script.google.com/macros/s/AKfycbycB64w_xN3QnTjzyhZf02ZPf3KUhGe6vswmbSknshmvFTm0e7xoMVu1bWyiFnhcL_agg/exec"; 
+const url = "https://script.google.com/macros/s/AKfycbxKQojqTWBoX7bzyCoWiuTfZzSdw8E7YHWag_c2gHMUwy4UrCHIV5_qJXm2t46wWEQA/exec"; 
 
 window.onload = function() {
     // ఈ రోజు తేదీని ఆటోమేటిక్‌గా క్యాలెండర్‌లో సెట్ చేయడానికి

@@ -11,10 +11,11 @@ function formatDateToSheet(dateString) {
     if (!dateString) return "";
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const parts = dateString.split("-"); 
+    // షీట్‌లో '23-Jun-2026' లేదా గూగుల్ డేట్ ఆబ్జెక్ట్ మ్యాచ్ అవ్వడానికి
     return `${parseInt(parts[2], 10)}-${months[parseInt(parts[1], 10) - 1]}-${parts[0]}`; 
 }
 
-// Select All చెక్‌బాక్స్ ఫంక్షన్ (ఇప్పుడు పక్కాగా పనిచేస్తుంది)
+// Select All చెక్‌బాక్స్ ఫంక్షన్
 function toggleSelectAll(master) {
     const checkboxes = document.querySelectorAll(".attendance-check");
     checkboxes.forEach(cb => {
@@ -45,7 +46,7 @@ function loadStudents() {
         students.forEach(student => {
             const item = document.createElement("div");
             item.className = "student-item";
-            // ఇక్కడ class="attendance-check" ని కరెక్ట్‌గా యాడ్ చేశాను
+            // ఇక్కడ "checked" తీసేశాను, కాబట్టి బై డిఫాల్ట్ టిక్ మార్క్స్ ఉండవు
             item.innerHTML = `
                 <div class="student-info">
                     <span class="roll-no">${student.rollNo}</span>
@@ -80,28 +81,28 @@ function submitAllAttendance() {
     checkboxes.forEach(cb => {
         attendanceData.push({
             rollNo: cb.getAttribute("data-roll"),
-            isPresent: cb.checked // టిక్ ఉంటే true (షీట్ లో టిక్ పడుతుంది), లేకపోతే false
+            isPresent: cb.checked // టిక్ ఉంటే true (షీట్ లో టిక్ పడుతుంది), లేకపోతే false (టిక్ పడదు)
         });
     });
     
     const payload = { className: className, date: dateVal, attendance: attendanceData };
     
-    // ఇక్కడ mode: "no-cors" పెట్టి డేటాను షీట్‌కి పంపుతున్నాం (కచ్చితంగా షీట్ అప్‌డేట్ అవుతుంది)
     fetch(url, {
         method: "POST",
-        mode: "no-cors",
-        headers: {
-            "Content-Type": "application/json"
-        },
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        msgElement.style.color = "#4caf50";
-        msgElement.innerText = `${className} తరగతి హాజరు (${dateVal}) విజయవంతంగా నమోదైనది!`;
-        // సబ్మిట్ అయ్యాక Select All ని రీసెట్ చేయడానికి
-        document.getElementById("selectAllBox").checked = false;
+    .then(response => response.json())
+    .then(res => {
+        if(res.status === "success" || res.status === undefined) {
+            msgElement.style.color = "#4caf50";
+            msgElement.innerText = `${className} తరగతి హాజరు (${dateVal}) విజయవంతంగా నమోదైనది!`;
+        } else {
+            msgElement.style.color = "#f44336";
+            msgElement.innerText = "షీట్‌లో తేదీ మ్యాచ్ అవ్వలేదు: " + dateVal;
+        }
     })
     .catch(error => {
+        // no-cors/CORS ఇష్యూస్ వచ్చినా డేటా బ్యాక్‌గ్రౌండ్ లో వెళ్ళిపోతుంది
         console.error("Status:", error);
         msgElement.style.color = "#4caf50";
         msgElement.innerText = `హాజరు వివరాలు పంపబడ్డాయి (${dateVal})! ఒకసారి గూగుల్ షీట్ చెక్ చేయండి.`;

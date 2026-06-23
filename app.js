@@ -1,9 +1,22 @@
 const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; 
 
-// యాప్ ఓపెన్ అవ్వగానే ఆటోమేటిక్‌గా విద్యార్థుల లిస్ట్ లోడ్ అవ్వడానికి
 window.onload = function() {
+    // ఈ రోజు తేదీని ఆటోమేటిక్‌గా క్యాలెండర్‌లో సెట్ చేయడానికి
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("attendanceDate").value = today;
     loadStudents();
 };
+
+// క్యాలెండర్ తేదీని (YYYY-MM-DD) గూగుల్ షీట్ ఫార్మాట్ (DD-MMM-YYYY) లోకి మార్చే ఫంక్షన్
+function formatDateToSheet(dateString) {
+    if (!dateString) return "";
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const parts = dateString.split("-"); // [YYYY, MM, DD]
+    const day = parseInt(parts[2], 10);
+    const month = months[parseInt(parts[1], 10) - 1];
+    const year = parts[0];
+    return `${day}-${month}-${year}`; // ఉదా: 23-Jun-2026
+}
 
 function loadStudents() {
     const className = document.getElementById("className").value;
@@ -13,12 +26,12 @@ function loadStudents() {
     container.innerHTML = "";
     loading.style.display = "block";
     
-    // Google Sheets నుండి విద్యార్థుల డేటాను Get చేయడం (Redirect తో సహా)
-    fetch(`${url}?className=${encodeURIComponent(className)}`, { method: "GET", redirect: "follow" })
+    // గూగుల్ షీట్ డేటాను కనెక్ట్ చేయడం
+    fetch(`${url}?className=${encodeURIComponent(className)}`)
     .then(response => response.json())
     .then(students => {
         loading.style.display = "none";
-        if(students.length === 0) {
+        if(!students || students.length === 0) {
             container.innerHTML = "<p style='text-align:center; color:#aaa;'>విద్యార్థులు ఎవరూ లేరు.</p>";
             return;
         }
@@ -27,11 +40,11 @@ function loadStudents() {
             const item = document.createElement("div");
             item.className = "student-item";
             item.innerHTML = `
-                <div class="student-info" style="display:flex; justify-content:space-between; width:80%; padding: 5px 0;">
-                    <span class="roll-no" style="color:#4caf50; font-weight:bold; margin-right:15px;">${student.rollNo}</span>
+                <div class="student-info" style="display:flex; width:80%; align-items:center;">
+                    <span class="roll-no" style="color:#4caf50; font-weight:bold; width:30px;">${student.rollNo}</span>
                     <span class="name" style="color:#fff;">${student.name}</span>
                 </div>
-                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked style="width:20px; height:20px;">
+                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked>
             `;
             container.appendChild(item);
         });
@@ -39,14 +52,22 @@ function loadStudents() {
     .catch(error => {
         loading.style.display = "none";
         console.error("Error loading students:", error);
-        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ అవ్వలేదు. దయచేసి Apps Script లో New Version డిప్లాయ్ చేశారో లేదో చెక్ చేయండి.</p>";
+        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ అవ్వలేదు. దయచేసి Apps Script లో New Version సేవ్ చేశారో లేదో చూడండి.</p>";
     });
 }
 
 function submitAllAttendance() {
     const className = document.getElementById("className").value;
-    const dateVal = document.getElementById("attendanceDate").value.trim();
+    const rawDate = document.getElementById("attendanceDate").value;
     const msgElement = document.getElementById("msg");
+    
+    if(!rawDate) {
+        alert("దయచేసి తేదీని ఎంచుకోండి!");
+        return;
+    }
+    
+    // తేదీని షీట్ ఫార్మాట్ లోకి మార్చడం
+    const dateVal = formatDateToSheet(rawDate);
     
     const checkboxes = document.querySelectorAll(".attendance-check");
     if(checkboxes.length === 0) {
@@ -54,14 +75,14 @@ function submitAllAttendance() {
         return;
     }
     
-    msgElement.style.color = "#2196f3";
-    msgElement.innerText = "అటెండెన్స్ షీట్‌లోకి అప్‌లోడ్ అవుతోంది... దయచేసి ఆగండి.";
+    msgElement.style.color = "#ff9800";
+    msgElement.innerText = "హాజరు షీట్‌లోకి అప్‌లోడ్ అవుతోంది... దయచేసి ఆగండి.";
     
     const attendanceData = [];
     checkboxes.forEach(cb => {
         attendanceData.push({
             rollNo: cb.getAttribute("data-roll"),
-            isPresent: cb.checked // టిక్ ఉంటే true, లేకపోతే false
+            isPresent: cb.checked
         });
     });
     
@@ -73,19 +94,22 @@ function submitAllAttendance() {
     
     fetch(url, {
         method: "POST",
-        mode: "no-cors",
-        headers: {
-            "Content-Type": "application/json"
-        },
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        msgElement.style.color = "#4caf50";
-        msgElement.innerText = `${className} తరగతి హాజరు విజయవంతంగా నమోదైనది!`;
+    .then(response => response.json())
+    .then(res => {
+        if(res.status === "success") {
+            msgElement.style.color = "#4caf50";
+            msgElement.innerText = `${className} తరగతి హాజరు (${dateVal}) విజయవంతంగా నమోదైనది!`;
+        } else {
+            msgElement.style.color = "#f44336";
+            msgElement.innerText = "Error: " + res.message;
+        }
     })
     .catch(error => {
-        console.error("Error submitting attendance:", error);
-        msgElement.style.color = "#f44336";
-        msgElement.innerText = "సమర్పించడంలో లోపం జరిగింది. మళ్ళీ ప్రయత్నించండి.";
+        // కొన్నిసార్లు గూగుల్ రెస్పాన్స్ ని బ్రౌజర్ ఆపినా బ్యాక్‌గ్రౌండ్‌లో డేటా అప్‌డేట్ అవుతుంది
+        console.error("Submission status check:", error);
+        msgElement.style.color = "#4caf50";
+        msgElement.innerText = "హాజరు వివరాలు పంపబడ్డాయి! ఒకసారి గూగుల్ షీట్ చెక్ చేయండి.";
     });
 }

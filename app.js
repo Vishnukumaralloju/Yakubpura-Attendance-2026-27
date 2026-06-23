@@ -1,18 +1,26 @@
-const url = "https://script.google.com/macros/s/AKfycbzzLYNKEVWQlELmeH1h8m9-IoiHeqStxOQFRXDK57CDdAQ38d4rEtmM9KeGmQYVVKfTjw/exec"; 
+const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; 
 
 window.onload = function() {
-    // ఈ రోజు తేదీని ఆటోమేటిక్‌గా క్యాలెండర్‌లో సెట్ చేయడానికి
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("attendanceDate").value = today;
     loadStudents();
 };
 
-// క్యాలెండర్ తేదీని (YYYY-MM-DD) గూగుల్ షీట్ ఫార్మాట్ (DD-MMM-YYYY) లోకి మార్చే ఫంక్షన్
+// తేదీ ఫార్మాట్‌ను గూగుల్ షీట్ సరిగ్గా రీడ్ చేసేలా మార్చే ఫంక్షన్
 function formatDateToSheet(dateString) {
     if (!dateString) return "";
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const parts = dateString.split("-"); 
+    // షీట్‌లో '23-Jun-2026' లేదా గూగుల్ డేట్ ఆబ్జెక్ట్ మ్యాచ్ అవ్వడానికి
     return `${parseInt(parts[2], 10)}-${months[parseInt(parts[1], 10) - 1]}-${parts[0]}`; 
+}
+
+// Select All చెక్‌బాక్స్ ఫంక్షన్
+function toggleSelectAll(master) {
+    const checkboxes = document.querySelectorAll(".attendance-check");
+    checkboxes.forEach(cb => {
+        cb.checked = master.checked;
+    });
 }
 
 function loadStudents() {
@@ -20,10 +28,12 @@ function loadStudents() {
     const container = document.getElementById("studentContainer");
     const loading = document.getElementById("loading");
     
+    // క్లాస్ మారినప్పుడు Select All బాక్స్ ని అన్‌టిక్ చేయడానికి
+    document.getElementById("selectAllBox").checked = false;
+    
     container.innerHTML = "";
     loading.style.display = "block";
     
-    // గూగుల్ షీట్ నుండి విద్యార్థుల లిస్ట్‌ను లోడ్ చేసే డైరెక్ట్ లాజిక్
     fetch(`${url}?className=${encodeURIComponent(className)}`, { method: "GET", redirect: "follow" })
     .then(response => response.json())
     .then(students => {
@@ -36,12 +46,13 @@ function loadStudents() {
         students.forEach(student => {
             const item = document.createElement("div");
             item.className = "student-item";
+            // ఇక్కడ "checked" తీసేశాను, కాబట్టి బై డిఫాల్ట్ టిక్ మార్క్స్ ఉండవు
             item.innerHTML = `
                 <div class="student-info">
                     <span class="roll-no">${student.rollNo}</span>
                     <span class="name">${student.name}</span>
                 </div>
-                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked>
+                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}">
             `;
             container.appendChild(item);
         });
@@ -49,7 +60,7 @@ function loadStudents() {
     .catch(error => {
         loading.style.display = "none";
         console.error("Error loading students:", error);
-        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ అవ్వలేదు. దయచేసి పేజీని రీఫ్రెష్ చేయండి.</p>";
+        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ అవ్వలేదు. దయచేసి రీఫ్రెష్ చేయండి.</p>";
     });
 }
 
@@ -70,7 +81,7 @@ function submitAllAttendance() {
     checkboxes.forEach(cb => {
         attendanceData.push({
             rollNo: cb.getAttribute("data-roll"),
-            isPresent: cb.checked
+            isPresent: cb.checked // టిక్ ఉంటే true (షీట్ లో టిక్ పడుతుంది), లేకపోతే false (టిక్ పడదు)
         });
     });
     
@@ -78,16 +89,22 @@ function submitAllAttendance() {
     
     fetch(url, {
         method: "POST",
-        mode: "no-cors",
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        msgElement.style.color = "#4caf50";
-        msgElement.innerText = `${className} తరగతి హాజరు (${dateVal}) విజయవంతంగా నమోదైనది!`;
+    .then(response => response.json())
+    .then(res => {
+        if(res.status === "success" || res.status === undefined) {
+            msgElement.style.color = "#4caf50";
+            msgElement.innerText = `${className} తరగతి హాజరు (${dateVal}) విజయవంతంగా నమోదైనది!`;
+        } else {
+            msgElement.style.color = "#f44336";
+            msgElement.innerText = "షీట్‌లో తేదీ మ్యాచ్ అవ్వలేదు: " + dateVal;
+        }
     })
     .catch(error => {
-        console.error("Error:", error);
+        // no-cors/CORS ఇష్యూస్ వచ్చినా డేటా బ్యాక్‌గ్రౌండ్ లో వెళ్ళిపోతుంది
+        console.error("Status:", error);
         msgElement.style.color = "#4caf50";
-        msgElement.innerText = "హాజరు వివరాలు పంపబడ్డాయి! ఒకసారి గూగుల్ షీట్ చెక్ చేయండి.";
+        msgElement.innerText = `హాజరు వివరాలు పంపబడ్డాయి (${dateVal})! ఒకసారి గూగుల్ షీట్ చెక్ చేయండి.`;
     });
 }

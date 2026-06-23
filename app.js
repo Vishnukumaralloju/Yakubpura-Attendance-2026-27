@@ -1,5 +1,5 @@
 // మీ గూగుల్ వెబ్ యాప్ URL ని కింద ఉన్న కోట్స్ మధ్యలో పెట్టండి
-const url = "YOUR_GOOGLE_WEB_APP_URL_HERE"; 
+const url = "https://script.google.com/macros/s/AKfycbz4-7bYrdV3N6FBWjh-H23gr437IVeoI11jx3hem_K7xNy8EZRHvHhZr0vhGFE-wcaBtQ/exec"; 
 
 function submitAttendance() {
     const dateVal = document.getElementById("attendanceDate").value.trim();

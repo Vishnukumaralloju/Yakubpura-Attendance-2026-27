@@ -1,4 +1,4 @@
-const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; // మీ గూగుల్ వెబ్ యాప్ కొత్త URL ఇక్కడ పెట్టండి
+const url = "https://script.google.com/macros/s/AKfycbzjLh5q0WoBD5Se92C0H6qzVV6W9MvLuTWaI4QcxaRnrDjxSZznVeUWSGrepcSWV_hDAg/exec"; 
 
 // యాప్ ఓపెన్ అవ్వగానే ఆటోమేటిక్‌గా విద్యార్థుల లిస్ట్ లోడ్ అవ్వడానికి
 window.onload = function() {
@@ -13,8 +13,8 @@ function loadStudents() {
     container.innerHTML = "";
     loading.style.display = "block";
     
-    // Google Sheets నుండి విద్యార్థుల డేటాను Get చేయడం
-    fetch(`${url}?className=${encodeURIComponent(className)}`)
+    // Google Sheets నుండి విద్యార్థుల డేటాను Get చేయడం (Redirect తో సహా)
+    fetch(`${url}?className=${encodeURIComponent(className)}`, { method: "GET", redirect: "follow" })
     .then(response => response.json())
     .then(students => {
         loading.style.display = "none";
@@ -27,11 +27,11 @@ function loadStudents() {
             const item = document.createElement("div");
             item.className = "student-item";
             item.innerHTML = `
-                <div class="student-info">
-                    <span class="roll-no">${student.rollNo}</span>
-                    <span class="name">${student.name}</span>
+                <div class="student-info" style="display:flex; justify-content:space-between; width:80%; padding: 5px 0;">
+                    <span class="roll-no" style="color:#4caf50; font-weight:bold; margin-right:15px;">${student.rollNo}</span>
+                    <span class="name" style="color:#fff;">${student.name}</span>
                 </div>
-                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked>
+                <input type="checkbox" class="attendance-check" data-roll="${student.rollNo}" checked style="width:20px; height:20px;">
             `;
             container.appendChild(item);
         });
@@ -39,7 +39,7 @@ function loadStudents() {
     .catch(error => {
         loading.style.display = "none";
         console.error("Error loading students:", error);
-        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ చేయడంలో సమస్య వచ్చింది.</p>";
+        container.innerHTML = "<p style='text-align:center; color:#f44336;'>డేటా లోడ్ అవ్వలేదు. దయచేసి Apps Script లో New Version డిప్లాయ్ చేశారో లేదో చెక్ చేయండి.</p>";
     });
 }
 
@@ -71,7 +71,6 @@ function submitAllAttendance() {
         attendance: attendanceData
     };
     
-    // డేటాను ఒకేసారి POST రిక్వెస్ట్ ద్వారా షీట్‌కు పంపడం
     fetch(url, {
         method: "POST",
         mode: "no-cors",
